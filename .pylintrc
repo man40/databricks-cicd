@@ -1,0 +1,18 @@
+[MASTER]
+init-hook='import sys; sys.path.append("deploy")'
+
+[MESSAGES CONTROL]
+disable=missing-docstring,
+        invalid-name,
+        relative-beyond-top-level,
+        too-many-instance-attributes,
+        too-many-return-statements,
+        too-few-public-methods,
+        too-many-arguments,
+        eval-used
+
+[FORMAT]
+max-line-length=120
+
+[MISCELLANEOUS]
+notes=
