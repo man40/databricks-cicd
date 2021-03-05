@@ -21,6 +21,8 @@ setup(
     name='databricks-cicd',
     version=databricks_cicd.__version__,
     packages=find_packages(exclude=['tests', 'tests.*']),
+    package_data={'': ['*.ini']},
+    include_package_data=True,
     install_requires=io.open('requirements.txt', encoding='utf-8').read(),
     entry_points='''
         [console_scripts]
@@ -31,7 +33,8 @@ setup(
     author_email='man40dev@gmail.com',
     description='CICD tool for testing and deploying to Databricks',
     long_description=io.open('README.md', encoding='utf-8').read(),
-    license='MIT',
+    long_description_content_type='text/markdown',
+    license='Apache License 2.0',
     classifiers=[
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',

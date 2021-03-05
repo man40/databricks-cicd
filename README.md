@@ -69,11 +69,17 @@ cicd deploy \
 
 #### Jobs:
 1. Add a job to source
-   1. Get the source of the job and write it to a file. You need to have [the databricks CLI](https://docs.databricks.com/user-guide/dev-tools/databricks-cli.html#install-the-cli) and [JQ](https://stedolan.github.io/jq/download/) installed. 
-   For Windows, it is easier to rename the `jq-win64.exe` to `jq.exe` and place it in `c:\Windows\System32` folder. Then on Windows/Linux/MAC: 
+   1. Get the source of the job and write it to a file. You need to have the
+      [Databricks CLI](https://docs.databricks.com/user-guide/dev-tools/databricks-cli.html#install-the-cli) 
+      and [JQ](https://stedolan.github.io/jq/download/) installed. 
+      For Windows, it is easier to rename the `jq-win64.exe` to `jq.exe` and place it 
+      in `c:\Windows\System32` folder. Then on Windows/Linux/MAC: 
       ```
       databricks jobs get --job-id 74 | jq .settings > Job_Name.json
       ```
+      This downloads the source JSON of the job from the databricks server and pulls only the settings from it, 
+      then writes it in to a file.
+      
       **_Note:_** The file name should be the same as the job name within the json file. Please, avoid spaces 
       in names.
    1. Add that file to the `jobs` folder
@@ -89,12 +95,12 @@ cicd deploy \
    1. Add that file to the `clusters` folder
    
 #### Instance pools:
-1. Add a instance pool to source
-   1. Similar to clusters, just user `instance-pools` instead of `clusters`
+1. Add an instance pool to source
+   1. Similar to clusters, just use `instance-pools` instead of `clusters`
    
 #### DBFS:
 1. Add a file to dbfs
    1. Just add a file to the the `dbfs` folder.
    
-#TODO
+# TODO
 * Improve validation. It is still a baby.
