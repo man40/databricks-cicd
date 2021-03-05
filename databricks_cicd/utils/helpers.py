@@ -212,6 +212,7 @@ class InstancePoolsHelper(DeployHelperBase):
             local_item.content = Local.load_json(local_item.path)
             for attribute in self._c.conf.instance_pools.strip_attributes:
                 local_item.content.pop(attribute, None)
+            local_item.content['instance_pool_name'] = self.remote_path(local_item.content['instance_pool_name'])
 
     def _diff(self, local_item: Item, remote_item: Item):
         self.get_local(local_item)
@@ -259,9 +260,12 @@ class ClustersHelper(DeployHelperBase):
                 local_item.content.pop(attribute, None)
             c = local_item.content
             if c.get('instance_pool_name') and self._instance_pools:
-                c['instance_pool_id'] = self._instance_pools.get_single_item(
-                    self._instance_pools.remote_path(c['instance_pool_name'])).path
+                ip = self._instance_pools.get_single_item(c['instance_pool_name'])
+                assert ip is not None, f'Instance pool "{c["instance_pool_name"]}", ' \
+                                       f'referenced in cluster "{c["cluster_name"]}" not found'
+                c['instance_pool_id'] = ip.path
                 c.pop('instance_pool_name', None)
+            c['cluster_name'] = self.remote_path(c['cluster_name'])
 
     def _diff(self, local_item: Item, remote_item: Item):
         self.get_local(local_item)
@@ -312,9 +316,12 @@ class JobsHelper(DeployHelperBase):
                 local_item.content.pop(attribute, None)
             c = local_item.content
             if c.get('existing_cluster_name') and self._clusters:
-                c['existing_cluster_id'] = self._clusters.get_single_item(
-                    self._clusters.remote_path(c['existing_cluster_name'])).path
+                ec = self._clusters.get_single_item(self._clusters.remote_path(c['existing_cluster_name']))
+                assert ec is not None, f'Cluster "{c["existing_cluster_name"]}", ' \
+                                       f'referenced in job "{c["name"]}" not found'
+                c['existing_cluster_id'] = ec.path
                 c.pop('existing_cluster_name', None)
+            c['name'] = self.remote_path(c['name'])
 
 
 class DBFSHelper(DeployHelperBase):
@@ -352,11 +359,6 @@ class DBFSHelper(DeployHelperBase):
                           'data': base64.b64encode(f.read(self._c.conf.dbfs.transfer_block_size)).decode("utf-8")})
                 _log.info('%s bytes trnasferred', min(position + block_size, file_size))
         self._c.api.call(Endpoints.dbfs_close, body={'handle': handle})
-        # self.get_local(local_item)
-        # return self._c.api.call(Endpoints.dbfs_put, body={
-        #     'path': path,
-        #     'overwrite': True,
-        #     'contents': base64.b64encode(local_item.content).decode("utf-8")})
 
     def _delete(self, remote_item: Item):
         self._remote_items_stale = True

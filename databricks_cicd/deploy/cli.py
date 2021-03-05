@@ -39,7 +39,7 @@ _log = logging.getLogger(__name__)
               help='Prefix for object names, like jobs, clusters, etc.')
 @click.option('--config_file', '-c', show_default=True, default=None,
               help='Path to the config file.')
-@click.option('--dry_run', '-np', show_default=True, default=False, is_flag=True,
+@click.option('--dry_run', '-dry', show_default=True, default=False, is_flag=True,
               help='Pretend run, without modifying the target.')
 @click.option('--verbose', show_default=True, default=False, is_flag=True,
               help='Shows debug messages.')
