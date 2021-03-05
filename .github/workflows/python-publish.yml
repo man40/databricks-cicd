@@ -4,6 +4,8 @@
 name: Deploy to PyPi
 
 on:
+  release:
+    types: [ released ]
   workflow_dispatch:
 
 jobs:

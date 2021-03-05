@@ -1,4 +1,6 @@
-# Databricks CI/CD 
+# Databricks CI/CD
+[![PyPI Latest Release](https://img.shields.io/pypi/v/databricks-cicd.svg)](https://pypi.org/project/databricks-cicd/)
+
 This is a tool for building CI/CD pipelines for Databricks. It is a python package that
 works in conjunction with a custom GIT repository (or a simple file structure) to validate 
 and deploy content to databricks. Currently, it can handle the following content:
@@ -58,6 +60,9 @@ cicd deploy \
    --verbose
 ```
 **_Note:_** Paths for windows need to be in double quotes
+
+The default configuration is defined in [default.ini](databricks_cicd/conf/default.ini) and can be overridden with a
+custom ini file using the -c option, usually one config file per target environment. ([sample](config_sample.ini))
 
 # Create content
 

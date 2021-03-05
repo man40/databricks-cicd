@@ -31,6 +31,10 @@ setup(
     zip_safe=False,
     author='Manol Manolov',
     author_email='man40dev@gmail.com',
+    url='https://github.com/man40/databricks-cicd',
+    project_urls={
+        "Source": "https://github.com/man40/databricks-cicd",
+    },
     description='CICD tool for testing and deploying to Databricks',
     long_description=io.open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',

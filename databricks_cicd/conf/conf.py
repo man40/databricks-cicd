@@ -76,7 +76,6 @@ class ConfWorkspace(ConfBase):
         self.deploy = parser[self._section].getboolean('deploy')
         self.local_sub_dir = parser[self._section].get('local_sub_dir')
         self.target_path = parser[self._section].get('target_path')
-        self.transfer_block_size = self._parse_int(parser[self._section].get('transfer_block_size'))
         assert self.target_path != '/', 'Cannot deploy in the workspace root folder!'
 
 
