@@ -316,7 +316,7 @@ class JobsHelper(DeployHelperBase):
                 local_item.content.pop(attribute, None)
             c = local_item.content
             if c.get('existing_cluster_name') and self._clusters:
-                ec = self._clusters.get_single_item(self._clusters.remote_path(c['existing_cluster_name']))
+                ec = self._clusters.get_single_item(c['existing_cluster_name'])
                 assert ec is not None, f'Cluster "{c["existing_cluster_name"]}", ' \
                                        f'referenced in job "{c["name"]}" not found'
                 c['existing_cluster_id'] = ec.path
