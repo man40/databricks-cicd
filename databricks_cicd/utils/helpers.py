@@ -15,6 +15,7 @@
 import logging
 import base64
 import json
+import re
 from os import path as op
 from abc import abstractmethod
 from collections import OrderedDict
@@ -173,6 +174,13 @@ class WorkspaceHelper(DeployHelperBase):
         return (local_item.content.decode("utf-8").replace('\r', '').replace('\n', '') !=
                 remote_item.content.decode("utf-8").replace('\r', '').replace('\n', ''))
 
+    def find_notebook(self, path: str) -> str:
+        if self.remote_items.get(path):
+            return self.remote_items[path].path
+        m = re.search(fr'^/\S+/\S+@\S+\.\S+/{self._c.conf.workspace.local_sub_dir}/(.+)', path, flags=re.IGNORECASE)
+        if m:
+            return m.group(1)
+
 
 class InstancePoolsHelper(DeployHelperBase):
     def __init__(self, context: Context):
@@ -276,10 +284,11 @@ class ClustersHelper(DeployHelperBase):
 
 
 class JobsHelper(DeployHelperBase):
-    def __init__(self, context: Context, clusters: ClustersHelper):
+    def __init__(self, context: Context, clusters: ClustersHelper, workspace: WorkspaceHelper):
         super().__init__(context)
         self._target_path = context.conf.name_prefix
         self._clusters = clusters
+        self._workspace = workspace
 
     def _ls(self, path=None):
         jobs = json.loads(self._c.api.call(Endpoints.jobs_list, body={}).text)
@@ -315,12 +324,23 @@ class JobsHelper(DeployHelperBase):
             for attribute in self._c.conf.jobs.strip_attributes:
                 local_item.content.pop(attribute, None)
             c = local_item.content
+
+            # find the cluster
             if c.get('existing_cluster_name') and self._clusters:
                 ec = self._clusters.get_single_item(c['existing_cluster_name'])
                 assert ec is not None, f'Cluster "{c["existing_cluster_name"]}", ' \
                                        f'referenced in job "{c["name"]}" not found'
                 c['existing_cluster_id'] = ec.path
                 c.pop('existing_cluster_name', None)
+
+            # find the right notebook
+            notebook_path = c.get('notebook_task', {}).get('notebook_path')
+            if notebook_path:
+                remote_notebook_path = self._workspace.find_notebook(notebook_path)
+                assert remote_notebook_path is not None, \
+                    f'Notebook "{notebook_path}" referenced in job "{c["name"]}" not found'
+                c['notebook_task']['notebook_path'] = remote_notebook_path
+
             c['name'] = self.remote_path(c['name'])
 
 

@@ -84,7 +84,7 @@ def deploy_cli(**kwargs):
         _log.info('Deploying clusters...')
         clusters.deploy()
 
-    jobs = helpers.JobsHelper(context, clusters)
+    jobs = helpers.JobsHelper(context, clusters, workspace)
     if conf.jobs.deploy:
         _log.info('Deploying jobs...')
         jobs.deploy()
