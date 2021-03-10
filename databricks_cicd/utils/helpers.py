@@ -131,7 +131,7 @@ class WorkspaceHelper(DeployHelperBase):
         if path is None:
             path = self._target_path
         _objects = OrderedDict()
-        for obj in self._c.api.call(Endpoints.workspace_list, body={'path': path}).json().get('objects', {}):
+        for obj in self._c.api.call(Endpoints.workspace_list, body={'path': path}).json().get('objects', []):
             if obj['object_type'] == 'DIRECTORY':
                 _objects = dict(_objects, **self._ls(obj['path']))
             _objects[self.common_path(obj['path'])] = Item(
@@ -184,7 +184,7 @@ class InstancePoolsHelper(DeployHelperBase):
         return {self.common_path(i['instance_pool_name']): Item(path=i['instance_pool_id'],
                                                                 kind='instance pool',
                                                                 content=i)
-                for i in instance_pools.get('instance_pools', {})
+                for i in instance_pools.get('instance_pools', [])
                 if i['default_tags']['DatabricksInstancePoolCreatorId'] == self._c.conf.deploying_user_id
                 and i['instance_pool_name'].startswith(self._c.conf.name_prefix)}
 
@@ -230,7 +230,7 @@ class ClustersHelper(DeployHelperBase):
         return {self.common_path(i['cluster_name']): Item(path=i['cluster_id'],
                                                           kind='cluster',
                                                           content=i)
-                for i in clusters.get('clusters', {})
+                for i in clusters.get('clusters', [])
                 if i['creator_user_name'] == self._c.conf.deploying_user_name
                 and i['cluster_name'].startswith(self._c.conf.name_prefix)}
 
@@ -286,7 +286,7 @@ class JobsHelper(DeployHelperBase):
         return {self.common_path(i['settings']['name']): Item(path=i['job_id'],
                                                               kind='job',
                                                               content=i['settings'])
-                for i in jobs.get('jobs')
+                for i in jobs.get('jobs', [])
                 if i['creator_user_name'] == self._c.conf.deploying_user_name
                 and i['settings']['name'].startswith(self._c.conf.name_prefix)}
 
@@ -333,7 +333,7 @@ class DBFSHelper(DeployHelperBase):
         if path is None:
             path = self._target_path
         _objects = OrderedDict()
-        for obj in self._c.api.call(Endpoints.dbfs_list, body={'path': path}).json().get('files', {}):
+        for obj in self._c.api.call(Endpoints.dbfs_list, body={'path': path}).json().get('files', []):
             if obj['is_dir']:
                 _objects = dict(_objects, **self._ls(obj['path']))
             _objects[self.common_path(obj['path'])] = Item(
@@ -386,7 +386,7 @@ class UsersHelper(DeployHelperBase):
         query = f'?filter=userName+eq+{path}' if path else None
         users = json.loads(self._c.api.call(Endpoints.users_list, body={}, query=query).text)
         return {i['userName']: Item(path=i['id'], kind='user', content=i)
-                for i in users.get('Resources', {})}
+                for i in users.get('Resources', [])}
 
     def _ls_local(self):
         pass  # TODO:
