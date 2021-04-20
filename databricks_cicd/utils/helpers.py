@@ -325,6 +325,9 @@ class JobsHelper(DeployHelperBase):
                 local_item.content.pop(attribute, None)
             c = local_item.content
 
+            # apply default values
+            c['timeout_seconds'] = c.get('timeout_seconds', 0)
+
             # find the cluster
             if c.get('existing_cluster_name') and self._clusters:
                 ec = self._clusters.get_single_item(c['existing_cluster_name'])

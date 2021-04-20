@@ -41,7 +41,7 @@ class Context:
         self.conf = config
 
 
-def is_different(left, right, ignore_keys=None):
+def is_different(left, right, ignore_keys=None, current_path='$'):
     """
     Compares two dictionaries, disregarding order on keys and lists.
     Also missing attribute will be treated the same as empty dict or list.
@@ -49,19 +49,20 @@ def is_different(left, right, ignore_keys=None):
     :param left: compare left with right
     :param right: compare left with right
     :param ignore_keys: list. Ignores dict keys, while comparing
+    :param current_path: string. Used to display debug message.
     :return:
     """
     if left in (None, [], {}) and right in (None, [], {}):
         return False
     if left is None or right is None:
-        _log.debug('%s is diff from %s', left, right)
+        _log.debug('In %s, %s is diff from %s', current_path, left, right)
         return True
     if isinstance(left, dict) and isinstance(right, dict):
         if ignore_keys is None:
             ignore_keys = []
         for key in (set(left) | set(right)) - set(ignore_keys):
-            if is_different(left.get(key), right.get(key)):
-                _log.debug('%s is diff from %s', left.get(key), right.get(key))
+            if is_different(left.get(key), right.get(key), current_path='.'.join([current_path, key])):
+                _log.debug('In %s, %s is diff from %s', current_path, left.get(key), right.get(key))
                 return True
         return False
     if isinstance(left, list) and isinstance(right, list):
@@ -69,8 +70,8 @@ def is_different(left, right, ignore_keys=None):
             return True
         sorted_right = sorted(right)
         for i, value in enumerate(sorted(left)):
-            if is_different(value, sorted_right[i]):
-                _log.debug('%s is diff from %s', value, sorted_right[i])
+            if is_different(value, sorted_right[i], current_path=current_path):
+                _log.debug('In %s, %s is diff from %s', current_path, value, sorted_right[i])
                 return True
         return False
     if left == right:
