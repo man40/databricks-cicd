@@ -60,7 +60,13 @@ def deploy_cli(**kwargs):
     api = API(conf, kwargs['token'])
     context = Context(conf, api)
     users = helpers.UsersHelper(context)
-    conf.deploying_user_id = users.get_single_item(conf.deploying_user_name).path
+    user = users.get_single_item(conf.deploying_user_name)
+    if user:
+        conf.deploying_user_id = user.path
+    else:
+        service_principals = helpers.ServicePrincipalsHelper(context)
+        conf.deploying_user_id = service_principals.get_single_item(conf.deploying_user_name)
+
 
     _log.info('''databricks-cicd deploy initialized. Current configuration:
 ---------------------------------------------------------------------------------------------------------

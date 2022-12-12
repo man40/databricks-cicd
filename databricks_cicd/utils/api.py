@@ -63,6 +63,7 @@ class Endpoints:
     dbfs_add_block = Endpoint('post', '2.0/dbfs/add-block', False)  # False - to prevent triggering safety limit
 
     users_list = Endpoint('get', '2.0/preview/scim/v2/Users', False)
+    service_principals_list = Endpoint('get', '2.0/preview/scim/v2/ServicePrincipals', False)
 
 
 class API:

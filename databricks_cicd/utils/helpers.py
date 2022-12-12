@@ -419,3 +419,24 @@ class UsersHelper(DeployHelperBase):
 
     def _delete(self, remote_item: Item):
         pass  # TODO:
+
+
+class ServicePrincipalsHelper(DeployHelperBase):
+    def __init__(self, context: Context):
+        super().__init__(context)
+        self._target_path = context.conf.name_prefix
+
+    def _ls(self, path=None):
+        query = f'?filter=displayName+eq+{path}' if path else None
+        service_principals = json.loads(self._c.api.call(Endpoints.service_principals_list, body={}, query=query).text)
+        return {i['displayName']: Item(path=i['id'], kind='service principal', content=i)
+                for i in service_principals.get('Resources', [])}
+
+    def _ls_local(self):
+        pass  # TODO:
+
+    def _create(self, local_item: Item, path):
+        pass  # TODO:
+
+    def _delete(self, remote_item: Item):
+        pass  # TODO:
