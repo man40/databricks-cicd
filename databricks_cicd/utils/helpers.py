@@ -174,12 +174,13 @@ class WorkspaceHelper(DeployHelperBase):
         return (local_item.content.decode("utf-8").replace('\r', '').replace('\n', '') !=
                 remote_item.content.decode("utf-8").replace('\r', '').replace('\n', ''))
 
-    def find_notebook(self, path: str) -> str:
+    def find_notebook(self, path: str):
         if self.remote_items.get(path):
             return self.remote_items[path].path
         m = re.search(fr'^/\S+/\S+@\S+\.\S+/{self._c.conf.workspace.local_sub_dir}/(.+)', path, flags=re.IGNORECASE)
-        if m:
-            return m.group(1)
+        if m and self.remote_items.get(m.group(1)):
+            return self.remote_items[m.group(1)].path
+        return None
 
 
 class InstancePoolsHelper(DeployHelperBase):
@@ -318,6 +319,14 @@ class JobsHelper(DeployHelperBase):
         self._remote_items_stale = True
         return self._c.api.call(Endpoints.jobs_delete, body={'job_id': remote_item.path})
 
+    def _replace_notebook_path(self, task: dict, job_name: str):
+        notebook_path = task.get('notebook_task', {}).get('notebook_path')
+        if notebook_path:
+            remote_notebook_path = self._workspace.find_notebook(notebook_path)
+            assert remote_notebook_path is not None, \
+                f'Notebook "{notebook_path}" referenced in job "{job_name}" not found'
+            task['notebook_task']['notebook_path'] = remote_notebook_path
+
     def get_local(self, local_item: Item, overwrite=False):
         if overwrite or local_item.content is None:
             local_item.content = Local.load_json(local_item.path)
@@ -336,13 +345,10 @@ class JobsHelper(DeployHelperBase):
                 c['existing_cluster_id'] = ec.path
                 c.pop('existing_cluster_name', None)
 
-            # find the right notebook
-            notebook_path = c.get('notebook_task', {}).get('notebook_path')
-            if notebook_path:
-                remote_notebook_path = self._workspace.find_notebook(notebook_path)
-                assert remote_notebook_path is not None, \
-                    f'Notebook "{notebook_path}" referenced in job "{c["name"]}" not found'
-                c['notebook_task']['notebook_path'] = remote_notebook_path
+            # find the right notebooks
+            self._replace_notebook_path(c, c['name'])
+            for t in c.get('tasks', []):
+                self._replace_notebook_path(t, c['name'])
 
             c['name'] = self.remote_path(c['name'])
 
@@ -406,7 +412,7 @@ class UsersHelper(DeployHelperBase):
         self._target_path = context.conf.name_prefix
 
     def _ls(self, path=None):
-        query = f'?filter=userName+eq+{path}' if path else None
+        query = f'filter=userName+eq+{path}' if path else None
         users = json.loads(self._c.api.call(Endpoints.users_list, body={}, query=query).text)
         return {i['userName']: Item(path=i['id'], kind='user', content=i)
                 for i in users.get('Resources', [])}
@@ -427,7 +433,7 @@ class ServicePrincipalsHelper(DeployHelperBase):
         self._target_path = context.conf.name_prefix
 
     def _ls(self, path=None):
-        query = f'?filter=displayName+eq+{path}' if path else None
+        query = f'filter=displayName+eq+{path}' if path else None
         service_principals = json.loads(self._c.api.call(Endpoints.service_principals_list, body={}, query=query).text)
         return {i['displayName']: Item(path=i['id'], kind='service principal', content=i)
                 for i in service_principals.get('Resources', [])}
