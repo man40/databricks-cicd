@@ -65,7 +65,9 @@ def deploy_cli(**kwargs):
         conf.deploying_user_id = user.path
     else:
         service_principals = helpers.ServicePrincipalsHelper(context)
-        conf.deploying_user_id = service_principals.get_single_item(conf.deploying_user_name)
+        service_principal = service_principals.get_single_item(conf.deploying_user_name)
+        conf.deploying_user_id = service_principal.path
+        conf.deploying_service_name = service_principal.content.get('applicationId')
 
 
     _log.info('''databricks-cicd deploy initialized. Current configuration:

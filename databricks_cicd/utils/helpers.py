@@ -240,7 +240,8 @@ class ClustersHelper(DeployHelperBase):
                                                           kind='cluster',
                                                           content=i)
                 for i in clusters.get('clusters', [])
-                if i['creator_user_name'] == self._c.conf.deploying_user_name
+                if (i['creator_user_name'] == self._c.conf.deploying_service_name
+                    or i['creator_user_name'] == self._c.conf.deploying_user_name)
                 and i['cluster_name'].startswith(self._c.conf.name_prefix)}
 
     def _ls_local(self):
@@ -297,7 +298,8 @@ class JobsHelper(DeployHelperBase):
                                                               kind='job',
                                                               content=i['settings'])
                 for i in jobs.get('jobs', [])
-                if i['creator_user_name'] == self._c.conf.deploying_user_name
+                if (i['creator_user_name'] == self._c.conf.deploying_service_name
+                    or i['creator_user_name'] == self._c.conf.deploying_user_name)
                 and i['settings']['name'].startswith(self._c.conf.name_prefix)}
 
     def _ls_local(self):
@@ -327,6 +329,14 @@ class JobsHelper(DeployHelperBase):
                 f'Notebook "{notebook_path}" referenced in job "{job_name}" not found'
             task['notebook_task']['notebook_path'] = remote_notebook_path
 
+    def _replace_cluster_name(self, task: dict, job_name: str):
+        if task.get('existing_cluster_name') and self._clusters:
+            ec = self._clusters.get_single_item(task['existing_cluster_name'])
+            assert ec is not None, f'Cluster "{task["existing_cluster_name"]}", ' \
+                                   f'referenced in job "{job_name}" not found'
+            task['existing_cluster_id'] = ec.path
+            task.pop('existing_cluster_name', None)
+
     def get_local(self, local_item: Item, overwrite=False):
         if overwrite or local_item.content is None:
             local_item.content = Local.load_json(local_item.path)
@@ -338,12 +348,9 @@ class JobsHelper(DeployHelperBase):
             c['timeout_seconds'] = c.get('timeout_seconds', 0)
 
             # find the cluster
-            if c.get('existing_cluster_name') and self._clusters:
-                ec = self._clusters.get_single_item(c['existing_cluster_name'])
-                assert ec is not None, f'Cluster "{c["existing_cluster_name"]}", ' \
-                                       f'referenced in job "{c["name"]}" not found'
-                c['existing_cluster_id'] = ec.path
-                c.pop('existing_cluster_name', None)
+            self._replace_cluster_name(c, c['name'])
+            for t in c.get('tasks', []):
+                self._replace_cluster_name(t, c['name'])
 
             # find the right notebooks
             self._replace_notebook_path(c, c['name'])

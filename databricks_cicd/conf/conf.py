@@ -56,6 +56,7 @@ class Conf(ConfBase):
         self._section = 'global'
         self.workspace_host = parser[self._section].get('workspace_host')
         self.deploying_user_name = parser[self._section].get('deploying_user_name')
+        self.deploying_service_name = parser[self._section].get('deploying_service_name')
         self.deploying_user_id = None
         self.local_path = parser[self._section].get('local_path')
         self.dry_run = parser[self._section].getboolean('dry_run')
