@@ -242,6 +242,7 @@ class ClustersHelper(DeployHelperBase):
                 for i in clusters.get('clusters', [])
                 if (i['creator_user_name'] == self._c.conf.deploying_service_name
                     or i['creator_user_name'] == self._c.conf.deploying_user_name)
+                and i['cluster_source'] != 'JOB'
                 and i['cluster_name'].startswith(self._c.conf.name_prefix)}
 
     def _ls_local(self):
