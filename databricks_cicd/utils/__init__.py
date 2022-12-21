@@ -17,6 +17,7 @@ import sys
 from databricks_cicd.conf import Conf
 from databricks_cicd.utils.api import API
 
+DICT_SORT_KEYS = ['task_key']
 _log = logging.getLogger(__name__)
 
 
@@ -39,6 +40,30 @@ class Context:
     def __init__(self, config: Conf, _api: API = None):
         self.api = _api
         self.conf = config
+
+
+def first_match(big_list: list, small_list: list) -> str:
+    for item in small_list:
+        if item in big_list:
+            return item
+    return ''
+
+
+def sort_list(source: list) -> list:
+    """
+    Attempts to sort a list.
+    If it is a list of dict, it will sort based on a key found within DICT_SORT_KEYS.
+    If the first dict in the list does not contain a key within DICT_SORT_KEYS, it will not attempt sort,
+    but just return the same list.
+    """
+    if len(source):
+        if isinstance(source[0], dict):
+            key = first_match(source[0].keys(), DICT_SORT_KEYS)
+            if key:
+                return sorted(source, key=lambda d: d[key])
+        else:
+            return sorted(source)
+    return source
 
 
 def is_different(left, right, ignore_keys=None, current_path='$'):
@@ -68,8 +93,8 @@ def is_different(left, right, ignore_keys=None, current_path='$'):
     if isinstance(left, list) and isinstance(right, list):
         if len(left) != len(right):
             return True
-        sorted_right = sorted(right)
-        for i, value in enumerate(sorted(left)):
+        sorted_right = sort_list(right)
+        for i, value in enumerate(sort_list(left)):
             if is_different(value, sorted_right[i], current_path=current_path):
                 _log.debug('In %s, %s is diff from %s', current_path, value, sorted_right[i])
                 return True
