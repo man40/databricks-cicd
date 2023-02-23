@@ -294,14 +294,26 @@ class JobsHelper(DeployHelperBase):
         self._workspace = workspace
 
     def _ls(self, path=None):
-        jobs = json.loads(self._c.api.call(Endpoints.jobs_list, body={}).text)
+        # pull jobs in batches due to the endpoint limitation:
+        batch_size = 10
+        offset = 0
+        result_count = batch_size
+        jobs = []
+        while result_count == batch_size:
+            jobs_batch = json.loads(self._c.api.call(
+                Endpoints.jobs_list, body={}, query=f"expand_tasks=true&limit={batch_size}&offset={offset}").text)
+            jobs.extend([
+                i for i in jobs_batch.get('jobs', [])
+                if (i['creator_user_name'] == self._c.conf.deploying_service_name
+                    or i['creator_user_name'] == self._c.conf.deploying_user_name)
+                and i['settings']['name'].startswith(self._c.conf.name_prefix)])
+            result_count = len(jobs_batch.get('jobs', []))
+            offset += batch_size
+
         return {self.common_path(i['settings']['name']): Item(path=i['job_id'],
                                                               kind='job',
                                                               content=i['settings'])
-                for i in jobs.get('jobs', [])
-                if (i['creator_user_name'] == self._c.conf.deploying_service_name
-                    or i['creator_user_name'] == self._c.conf.deploying_user_name)
-                and i['settings']['name'].startswith(self._c.conf.name_prefix)}
+                for i in jobs}
 
     def _ls_local(self):
         self.local_items = Local.files_ls(

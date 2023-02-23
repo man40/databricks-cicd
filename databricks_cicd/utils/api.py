@@ -38,7 +38,7 @@ class Endpoints:
     workspace_delete = Endpoint('post', '2.0/workspace/delete', True)
     workspace_mkdirs = Endpoint('post', '2.0/workspace/mkdirs', True)
 
-    jobs_list = Endpoint('get', '2.1/jobs/list/?expand_tasks=true', False)
+    jobs_list = Endpoint('get', '2.1/jobs/list', False)
     jobs_create = Endpoint('post', '2.1/jobs/create', True)
     jobs_reset = Endpoint('post', '2.1/jobs/reset', True)
     jobs_delete = Endpoint('post', '2.1/jobs/delete', True)
