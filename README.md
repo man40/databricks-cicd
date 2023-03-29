@@ -106,6 +106,4 @@ custom ini file using the -c option, usually one config file per target environm
 #### DBFS:
 1. Add a file to dbfs
    1. Just add a file to the the `dbfs` folder.
-   
-# TODO
-* Improve validation. It is still a baby.
+
