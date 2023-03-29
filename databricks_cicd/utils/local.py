@@ -95,3 +95,8 @@ class Local:
     @staticmethod
     def get_file_name(path) -> str:
         return op.splitext(op.basename(path))[0]
+
+    @staticmethod
+    def head(path, lines: int = 1, encoding: str = 'utf-8') -> str:
+        with open(file=path, mode='r', encoding=encoding) as f:
+            return ''.join(f.readlines(lines))

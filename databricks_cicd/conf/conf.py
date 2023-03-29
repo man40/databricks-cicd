@@ -69,6 +69,7 @@ class Conf(ConfBase):
         self.clusters = ConfClusters(parser)
         self.jobs = ConfJobs(parser)
         self.dbfs = ConfDBFS(parser)
+        self.validate = ConfValidate(parser)
 
 
 class ConfWorkspace(ConfBase):
@@ -117,3 +118,15 @@ class ConfDBFS(ConfBase):
         self.target_path = parser[self._section].get('target_path')
         self.transfer_block_size = eval(parser[self._section].get('transfer_block_size'))
         assert self.target_path != '/', 'Cannot deploy in the dbfs root folder!'
+
+
+class ConfValidate(ConfBase):
+    def __init__(self, parser: ConfigParser):
+        self._section = 'validate'
+        self.workspace_python_notebook_header = parser[self._section].getboolean('workspace_python_notebook_header')
+        self.clusters_name = parser[self._section].getboolean('clusters_name')
+        self.clusters_no_nested_folders = parser[self._section].getboolean('clusters_no_nested_folders')
+        self.jobs_name = parser[self._section].getboolean('jobs_name')
+        self.jobs_no_nested_folders = parser[self._section].getboolean('jobs_no_nested_folders')
+        self.jobs_notebook_paths = parser[self._section].getboolean('jobs_notebook_paths')
+        self.jobs_existing_clusters = parser[self._section].getboolean('jobs_existing_clusters')

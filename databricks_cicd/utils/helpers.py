@@ -264,19 +264,20 @@ class ClustersHelper(DeployHelperBase):
         self._remote_items_stale = True
         return self._c.api.call(Endpoints.clusters_delete, body={'cluster_id': remote_item.path})
 
-    def get_local(self, local_item: Item, overwrite=False):
+    def get_local(self, local_item: Item, overwrite=False, curate_item=True):
         if overwrite or local_item.content is None:
             local_item.content = Local.load_json(local_item.path)
-            for attribute in self._c.conf.clusters.strip_attributes:
-                local_item.content.pop(attribute, None)
-            c = local_item.content
-            if c.get('instance_pool_name') and self._instance_pools:
-                ip = self._instance_pools.get_single_item(c['instance_pool_name'])
-                assert ip is not None, f'Instance pool "{c["instance_pool_name"]}", ' \
-                                       f'referenced in cluster "{c["cluster_name"]}" not found'
-                c['instance_pool_id'] = ip.path
-                c.pop('instance_pool_name', None)
-            c['cluster_name'] = self.remote_path(c['cluster_name'])
+            if curate_item:
+                for attribute in self._c.conf.clusters.strip_attributes:
+                    local_item.content.pop(attribute, None)
+                c = local_item.content
+                if c.get('instance_pool_name') and self._instance_pools:
+                    ip = self._instance_pools.get_single_item(c['instance_pool_name'])
+                    assert ip is not None, f'Instance pool "{c["instance_pool_name"]}", ' \
+                                           f'referenced in cluster "{c["cluster_name"]}" not found'
+                    c['instance_pool_id'] = ip.path
+                    c.pop('instance_pool_name', None)
+                c['cluster_name'] = self.remote_path(c['cluster_name'])
 
     def _diff(self, local_item: Item, remote_item: Item):
         self.get_local(local_item)
@@ -306,7 +307,7 @@ class JobsHelper(DeployHelperBase):
                 i for i in jobs_batch.get('jobs', [])
                 if (i['creator_user_name'] == self._c.conf.deploying_service_name
                     or i['creator_user_name'] == self._c.conf.deploying_user_name)
-                and i['settings']['name'].startswith(self._c.conf.name_prefix)])
+                   and i['settings']['name'].startswith(self._c.conf.name_prefix)])
             result_count = len(jobs_batch.get('jobs', []))
             offset += batch_size
 
@@ -350,28 +351,54 @@ class JobsHelper(DeployHelperBase):
             task['existing_cluster_id'] = ec.path
             task.pop('existing_cluster_name', None)
 
-    def get_local(self, local_item: Item, overwrite=False):
+    def get_local(self, local_item: Item, overwrite=False, curate_item=True):
         if overwrite or local_item.content is None:
             local_item.content = Local.load_json(local_item.path)
             for attribute in self._c.conf.jobs.strip_attributes:
                 local_item.content.pop(attribute, None)
-            c = local_item.content
+            if curate_item:
+                c = local_item.content
 
-            # apply default values
-            c['timeout_seconds'] = c.get('timeout_seconds', 0)
+                # apply default values
+                c['timeout_seconds'] = c.get('timeout_seconds', 0)
 
-            # find the cluster
-            self._replace_cluster_name(c, c['name'])
-            for t in c.get('tasks', []):
-                self._replace_cluster_name(t, c['name'])
+                # find the cluster
+                self._replace_cluster_name(c, c['name'])
+                for t in c.get('tasks', []):
+                    self._replace_cluster_name(t, c['name'])
 
-            # find the right notebooks
-            self._replace_notebook_path(c, c['name'])
-            for t in c.get('tasks', []):
-                self._replace_notebook_path(t, c['name'])
+                # find the right notebooks
+                self._replace_notebook_path(c, c['name'])
+                for t in c.get('tasks', []):
+                    self._replace_notebook_path(t, c['name'])
 
-            c['name'] = self.remote_path(c['name'])
+                c['name'] = self.remote_path(c['name'])
 
+    def _validate_notebook_path(self, task: dict, job_name: str):
+        notebook_path = task.get('notebook_task', {}).get('notebook_path')
+        if notebook_path:
+            assert self._workspace.local_items.get(notebook_path) is not None, \
+                f'Notebook "{notebook_path}" referenced in job "{job_name}" not found'
+
+    def validate_notebook_path(self, local_item: Item):
+        self.get_local(local_item, curate_item=False)
+        c = local_item.content
+        self._validate_notebook_path(c, c['name'])
+        for t in c.get('tasks', []):
+            self._validate_notebook_path(t, c['name'])
+
+    def _validate_existing_cluster_name(self, task: dict, job_name: str):
+        if task.get('existing_cluster_name') and self._clusters:
+            ec = self._clusters.get_single_item(task['existing_cluster_name'])
+            assert ec is not None, f'Cluster "{task["existing_cluster_name"]}", ' \
+                                   f'referenced in job "{job_name}" not found'
+
+    def validate_existing_cluster_name(self, local_item: Item):
+        self.get_local(local_item, curate_item=False)
+        c = local_item.content
+        self._validate_existing_cluster_name(c, c['name'])
+        for t in c.get('tasks', []):
+            self._validate_existing_cluster_name(t, c['name'])
 
 class DBFSHelper(DeployHelperBase):
     def __init__(self, context: Context):
