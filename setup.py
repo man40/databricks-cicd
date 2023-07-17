@@ -18,7 +18,7 @@ import databricks_cicd
 
 
 setup(
-    name='databricks-cicd',
+    name='tactivos-databricks-cicd',
     version=databricks_cicd.__version__,
     packages=find_packages(exclude=['tests', 'tests.*']),
     package_data={'': ['*.ini']},
@@ -29,11 +29,11 @@ setup(
         cicd=databricks_cicd.cli:cli
     ''',
     zip_safe=False,
-    author='Manol Manolov',
-    author_email='man40dev@gmail.com',
-    url='https://github.com/man40/databricks-cicd',
+    author='Manol Manolov - Minor changes from Kevin Gould (Mural)',
+    author_email='',
+    url='https://github.com/tactivos/databricks-cicd',
     project_urls={
-        "Source": "https://github.com/man40/databricks-cicd",
+        "Source": "https://github.com/tactivos/databricks-cicd",
     },
     description='CICD tool for testing and deploying to Databricks',
     long_description=io.open('README.md', encoding='utf-8').read(),

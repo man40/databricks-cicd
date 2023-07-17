@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Original work edited by Kevin Gould from Mural on 2023-07-17
+
 import logging
 import base64
 import json
