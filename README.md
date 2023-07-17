@@ -1,5 +1,8 @@
 # Databricks CI/CD
-[![PyPI Latest Release](https://img.shields.io/pypi/v/databricks-cicd.svg)](https://pypi.org/project/databricks-cicd/)
+
+[![PyPI Latest Release](https://img.shields.io/pypi/v/tactivos-databricks-cicd.svg)](https://pypi.org/project/tactivis-databricks-cicd/)
+
+### Forked from Manol Manolov's original databricks-cicd repo to use with tactivos/data-databricks repo
 
 This is a tool for building CI/CD pipelines for Databricks. It is a python package that
 works in conjunction with a custom GIT repository (or a simple file structure) to validate 
@@ -11,7 +14,7 @@ and deploy content to databricks. Currently, it can handle the following content
 * **DBFS** - an arbitrary collection of files that may be deployed on a Databricks workspace
 
 # Installation
-`pip install databricks-cicd`
+`pip install tactivos-databricks-cicd`
 
 # Requirements
 To use this tool, you need a source directory structure (preferably as a private GIT repository) 
